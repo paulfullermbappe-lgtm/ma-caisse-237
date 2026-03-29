@@ -203,7 +203,7 @@
             Ticket PDF
         </button>
         <button onclick="partagerWhatsApp()" class="bg-[#25D366] text-white p-4 rounded-2xl shadow-xl hover:scale-105 transition btn-primary">
-            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338-11.892-11.893-11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.29-4.171c1.589.945 3.554 1.443 5.548 1.444 5.505 0 9.989-4.482 9.992-9.985 0-2.667-1.037-5.176-2.922-7.062-1.886-1.886-4.394-2.923-7.059-2.923-5.51 0-9.991 4.481-9.994 9.986-.001 1.832.493 3.626 1.429 5.192l-1.035 3.784 3.882-1.018z"/></svg>
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.29-4.171c1.589.945 3.554 1.443 5.548 1.444 5.505 0 9.989-4.482 9.992-9.985 0-2.667-1.037-5.176-2.922-7.062-1.886-1.886-4.394-2.923-7.059-2.923-5.51 0-9.991 4.481-9.994 9.986-.001 1.832.493 3.626 1.429 5.192l-1.035 3.784 3.882-1.018z"/></svg>
         </button>
     </footer>
 
@@ -238,11 +238,16 @@
             }
         }
 
+        // CORRECTION DU LIEN WHATSAPP POUR PLUS DE ROBUSTESSE
         function payerViaWhatsApp() {
-            // NUMÉRO CONFIGURÉ : 237698998820
             const tonNumero = "237698998820"; 
-            const msg = `Salut ! Je souhaite ACTIVER ma licence 237 CAISSE DU MBOA ??. \n\nTerminal-ID: ${Date.now()}`;
-            window.open(`https://wa.me/${tonNumero}?text=${encodeURIComponent(msg)}`, '_blank');
+            const msg = `Salut ! Je souhaite ACTIVER ma licence 237 CAISSE DU MBOA ??.\n\nTerminal-ID: ${Date.now()}`;
+            
+            // Utilisation du endpoint api.whatsapp.com (plus stable)
+            const url = `https://api.whatsapp.com/send?phone=${tonNumero}&text=${encodeURIComponent(msg)}`;
+            
+            // Redirection directe pour éviter les blocages de fenêtres surgissantes
+            window.location.href = url;
         }
 
         // LOGIQUE CAISSE
@@ -369,13 +374,17 @@
             const totalText = document.getElementById('totalVente').innerText.replace('FCFA', '').replace(/\s/g, '');
             const total = parseInt(totalText) || 0;
             const msg = `*???? REÇU 237 CAISSE DU MBOA*\n------------------\n*TOTAL : ${total.toLocaleString()} FCFA*\nMerci !`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+            
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            window.location.href = url;
         }
 
         function exporterRapport() {
             const total = ventes.reduce((a, b) => a + b.total, 0);
             const msg = `*?? RAPPORT QUOTIDIEN - 237 CAISSE DU MBOA*\nTotal: ${total.toLocaleString()} FCFA\nVentes: ${ventes.length}`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+            
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            window.location.href = url;
         }
 
         function resetData() { 

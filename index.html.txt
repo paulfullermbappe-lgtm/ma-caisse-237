@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#007a5e">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>237 CAISSE DU MBOA | Edition Nationale</title>
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --mboa-green: #007a5e; 
+            --mboa-red: #ce1126; 
+            --mboa-gold: #fcd116; 
+        }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            background-color: #f9fafb; 
+            color: #1f2937; 
+        }
+        .glass-card { 
+            background: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(10px); 
+            border: 1px solid rgba(0, 0, 0, 0.05); 
+        }
+        .btn-green { background-color: var(--mboa-green); color: white; }
+        .btn-red { background-color: var(--mboa-red); color: white; }
+        .btn-gold { background-color: var(--mboa-gold); color: black; }
+        
+        .btn-primary:active { transform: scale(0.96); transition: 0.1s; }
+        .lock-screen { backdrop-filter: blur(20px); background: rgba(0, 0, 0, 0.85); }
+        
+        .flag-line {
+            height: 6px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--mboa-green) 33.33%, var(--mboa-red) 33.33%, var(--mboa-red) 66.66%, var(--mboa-gold) 66.66%);
+            position: sticky;
+            top: 0;
+            z-index: 60;
+        }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white; padding: 0; margin: 0; }
+            @page { margin: 0; size: auto; }
+            #ticket-print { width: 80mm; padding: 10mm; margin: 0 auto; font-family: 'Courier New', monospace; color: black; }
+        }
+    </style>
+</head>
+<body class="pb-24">
+
+    <div class="flag-line no-print"></div>
+
+    <!-- OVERLAY DE LICENCE -->
+    <div id="license-overlay" class="fixed inset-0 z-[1000] lock-screen flex items-center justify-center p-6 hidden">
+        <div class="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl text-center animate-in zoom-in duration-300">
+            <div class="h-2 bg-gradient-to-r from-[#007a5e] via-[#ce1126] to-[#fcd116]"></div>
+            <div class="p-8 space-y-6">
+                <div class="w-20 h-20 bg-gray-100 rounded-3xl mx-auto flex items-center justify-center text-4xl border border-gray-100 shadow-inner">??</div>
+                <div>
+                    <h2 id="lock-title" class="font-black text-2xl text-gray-900 leading-tight uppercase tracking-tighter">Terminal Verrouillé</h2>
+                    <p class="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-[0.2em]">237 CAISSE DU MBOA</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <input type="text" id="license-key" placeholder="CLE-XXXX-XXXX" class="w-full bg-gray-50 border-2 border-gray-100 rounded-2xl p-4 text-center font-mono font-bold text-lg focus:border-[#ce1126] outline-none uppercase transition-all">
+                    <button onclick="verifierLicence()" class="w-full btn-red font-black py-4 rounded-2xl shadow-xl shadow-red-100 btn-primary uppercase tracking-widest">Activer maintenant</button>
+                </div>
+
+                <div class="pt-4 border-t border-gray-100 space-y-3">
+                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest">Besoin d'une licence ?</p>
+                    <button onclick="payerViaWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-3 rounded-xl text-xs flex items-center justify-center gap-2">
+                        CONTACTER LE SUPPORT ????
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="app-content">
+        <div class="no-print bg-gray-900 text-[9px] text-white py-1 px-4 flex justify-between items-center font-bold uppercase tracking-widest">
+            <span id="license-status" class="flex items-center gap-1">
+                <span class="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></span> Mode Démo
+            </span>
+            <span id="live-clock">00:00:00</span>
+        </div>
+
+        <header class="no-print glass-card sticky top-[6px] z-40 px-4 py-4 border-b flex justify-between items-center shadow-sm">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-[#007a5e] rounded-xl flex items-center justify-center text-white font-black italic shadow-lg shadow-green-900/20 border-b-4 border-[#ce1126]">237</div>
+                <div>
+                    <h1 class="font-black text-lg leading-none tracking-tighter uppercase">237 CAISSE <span class="text-[#ce1126]">DU MBOA</span></h1>
+                    <p class="text-[9px] font-extrabold text-[#fcd116] bg-black px-1.5 py-0.5 rounded mt-1 uppercase w-fit text-center">Gestion Pro ????</p>
+                </div>
+            </div>
+            <button onclick="toggleJournal()" class="bg-gray-100 p-2.5 rounded-xl hover:bg-gray-200 transition btn-primary">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            </button>
+        </header>
+
+        <main class="max-w-md mx-auto p-4 space-y-4 no-print">
+            <div class="grid grid-cols-2 gap-3">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border-l-4 border-[#007a5e]">
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Ventes du jour</p>
+                    <p id="count-ventes" class="text-2xl font-black text-gray-800">0</p>
+                </div>
+                <div class="bg-white p-4 rounded-3xl shadow-sm border-r-4 border-[#fcd116] text-right">
+                    <p class="text-[9px] font-bold text-gray-400 uppercase tracking-tighter">Recette Totale</p>
+                    <p id="recette-totale" class="text-2xl font-black text-[#007a5e]">0 <span class="text-xs">CFA</span></p>
+                </div>
+            </div>
+
+            <section id="panier-container" class="space-y-3 min-h-[40px]"></section>
+
+            <button onclick="ajouterLigne()" class="w-full bg-white border-2 border-dashed border-[#007a5e]/30 text-[#007a5e] font-black py-4 rounded-2xl flex items-center justify-center gap-2 hover:bg-green-50 transition btn-primary uppercase text-[10px] tracking-[0.2em]">
+                <span class="text-xl">+</span> Nouvel Article
+            </button>
+
+            <div class="bg-white p-6 rounded-[2.5rem] shadow-xl border border-gray-100 space-y-6 relative overflow-hidden">
+                <div class="absolute -top-10 -right-10 w-32 h-32 bg-[#fcd116]/5 rounded-full"></div>
+                
+                <div class="flex justify-between items-end">
+                    <div>
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Total à encaisser</span>
+                        <div id="totalVente" class="text-5xl font-black text-gray-900 leading-none">0 <small class="text-sm font-normal text-gray-400 uppercase tracking-normal text-[10px]">FCFA</small></div>
+                    </div>
+                    <div class="w-12 h-1 bg-[#ce1126] rounded-full mb-2"></div>
+                </div>
+
+                <div class="space-y-2">
+                    <div class="flex justify-between px-1">
+                        <label class="text-[10px] font-black text-gray-500 uppercase tracking-widest">Montant Reçu</label>
+                        <span class="text-[9px] font-bold text-[#ce1126] uppercase cursor-pointer" onclick="document.getElementById('argentRecu').value=''; calculerMonnaie()">Vider</span>
+                    </div>
+                    <div class="relative">
+                        <input type="number" id="argentRecu" oninput="calculerMonnaie()" placeholder="0" class="w-full bg-gray-50 border-2 border-transparent focus:border-[#ce1126] rounded-2xl p-5 text-3xl font-black outline-none transition-all">
+                        <span class="absolute right-5 top-1/2 -translate-y-1/2 text-gray-300 font-black text-sm uppercase">CFA</span>
+                    </div>
+                </div>
+
+                <div id="zone-monnaie" class="hidden animate-in fade-in slide-in-from-top-2">
+                    <div class="bg-[#fcd116] p-4 rounded-2xl flex justify-between items-center shadow-inner border-b-4 border-yellow-600">
+                        <div>
+                            <p class="text-[10px] font-black text-yellow-900 uppercase leading-none mb-1 tracking-tighter">Monnaie à rendre</p>
+                            <p id="valeurMonnaie" class="text-3xl font-black text-black">0 FCFA</p>
+                        </div>
+                        <div class="text-3xl">??</div>
+                    </div>
+                </div>
+
+                <button onclick="validerVente()" class="btn-red w-full text-white font-black py-5 rounded-2xl text-lg shadow-xl shadow-red-200 btn-primary uppercase tracking-widest border-b-4 border-red-800">
+                    Valider la Transaction
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Journal Modal -->
+    <div id="modalJournal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-sm:w-full max-w-sm rounded-[2.5rem] overflow-hidden flex flex-col max-h-[85vh] shadow-2xl">
+            <div class="bg-[#007a5e] p-6 text-white flex justify-between items-center">
+                <h2 class="font-black text-xl uppercase italic tracking-tighter">Bilan Journalier</h2>
+                <button onclick="toggleJournal()" class="w-10 h-10 flex items-center justify-center bg-white/20 rounded-full text-2xl font-light">×</button>
+            </div>
+            <div id="listeJournal" class="p-6 overflow-y-auto space-y-4 bg-gray-50 flex-grow"></div>
+            <div class="p-6 bg-white border-t flex flex-col gap-3">
+                <button onclick="exporterRapport()" class="w-full btn-red text-white font-black py-4 rounded-2xl text-xs uppercase shadow-lg shadow-red-100">Exporter Rapport WhatsApp</button>
+                <button onclick="resetData()" class="text-gray-400 text-[9px] font-bold uppercase py-2 hover:text-red-500 transition mx-auto italic tracking-widest">Effacer les données du jour</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TICKET PRINT -->
+    <div id="ticket-print" class="hidden print-only text-center">
+        <h2 style="font-size: 22px; font-weight: 800; margin: 0;">237 CAISSE DU MBOA</h2>
+        <p style="font-size: 10px; text-transform: uppercase; font-weight: bold; letter-spacing: 1px;">Le commerce de proximité ????</p>
+        <p style="font-size: 10px;" id="print-date"></p>
+        <hr style="border-top: 2px dashed black; margin: 15px 0;">
+        <table style="width: 100%; font-size: 13px; text-align: left; border-collapse: collapse;" id="print-items-list"></table>
+        <hr style="border-top: 2px dashed black; margin: 15px 0;">
+        <p style="font-size: 18px; font-weight: 900;">TOTAL: <span id="print-total">0</span> FCFA</p>
+        <p style="font-size: 10px; margin-top: 20px; font-style: italic;">Merci de votre visite !</p>
+    </div>
+
+    <footer class="no-print fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-lg border-t border-gray-100 flex gap-3 max-w-md mx-auto z-50">
+        <button onclick="window.print()" class="flex-1 bg-gray-900 text-white font-black py-4 rounded-2xl text-[10px] uppercase flex items-center justify-center gap-2 shadow-lg btn-primary tracking-widest">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+            Générer Ticket PDF
+        </button>
+        <button onclick="partagerWhatsApp()" class="bg-[#25D366] text-white p-4 rounded-2xl shadow-xl hover:scale-105 transition btn-primary">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.29-4.171c1.589.945 3.554 1.443 5.548 1.444 5.505 0 9.989-4.482 9.992-9.985 0-2.667-1.037-5.176-2.922-7.062-1.886-1.886-4.394-2.923-7.059-2.923-5.51 0-9.991 4.481-9.994 9.986-.001 1.832.493 3.626 1.429 5.192l-1.035 3.784 3.882-1.018z"/></svg>
+        </button>
+    </footer>
+
+    <script>
+        const CLE_PRO = "MBOA-2026-OK";
+        const LIMITE = 5;
+        let ventes = JSON.parse(localStorage.getItem('ventes_v2_237')) || [];
+        let count = parseInt(localStorage.getItem('c237_count')) || 0;
+        let active = localStorage.getItem('c237_active') === 'true';
+
+        function verifierLicence() {
+            const val = document.getElementById('license-key').value.toUpperCase();
+            if(val === CLE_PRO) {
+                localStorage.setItem('c237_active', 'true');
+                showToast("Licence Activée ! ????");
+                setTimeout(() => location.reload(), 1000);
+            } else { alert("Clé invalide ?"); }
+        }
+
+        function checkAccess() {
+            const overlay = document.getElementById('license-overlay');
+            const status = document.getElementById('license-status');
+            if(active) {
+                status.innerHTML = `<span class="w-1.5 h-1.5 bg-green-400 rounded-full"></span> Licence Pro Active`;
+                overlay.classList.add('hidden');
+            } else if (count >= LIMITE) {
+                overlay.classList.remove('hidden');
+            } else {
+                status.innerHTML = `<span class="w-1.5 h-1.5 bg-yellow-400 rounded-full animate-pulse"></span> Mode Démo (${LIMITE - count} ventes restantes)`;
+            }
+        }
+
+        function payerViaWhatsApp() {
+            const msg = `Salut ! Je souhaite activer ma licence 237 CAISSE DU MBOA. \n\nTerminal-ID: ${Date.now()}`;
+            window.open(`https://wa.me/2376XXXXXXXX?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function ajouterLigne() {
+            const id = Date.now();
+            const html = `
+                <div id="item-${id}" class="bg-white p-4 rounded-3xl shadow-sm border border-gray-50 space-y-3 animate-in slide-in-from-right-4 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-2 h-6 bg-[#007a5e] rounded-full"></div>
+                        <input type="text" placeholder="Article..." class="nom-art flex-grow font-bold text-sm outline-none uppercase">
+                        <button onclick="document.getElementById('item-${id}').remove(); calculerTotal()" class="text-red-200 hover:text-red-500 font-light text-2xl">×</button>
+                    </div>
+                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded-2xl">
+                        <div class="flex items-center bg-white border rounded-xl overflow-hidden scale-90 origin-left">
+                            <button onclick="modQte('${id}', -1)" class="w-8 h-8 flex items-center justify-center text-red-500 font-black">-</button>
+                            <input type="number" value="1" oninput="calculerTotal()" class="qte-art w-8 text-center font-black text-xs outline-none border-none pointer-events-none">
+                            <button onclick="modQte('${id}', 1)" class="w-8 h-8 flex items-center justify-center text-green-600 font-black">+</button>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <input type="number" placeholder="0" oninput="calculerTotal()" class="prix-art w-24 text-right font-black text-[#007a5e] outline-none text-lg bg-transparent">
+                            <span class="text-[8px] font-black text-gray-300">CFA</span>
+                        </div>
+                    </div>
+                </div>`;
+            document.getElementById('panier-container').insertAdjacentHTML('beforeend', html);
+        }
+
+        function modQte(id, delta) {
+            const qteInput = document.querySelector(`#item-${id} .qte-art`);
+            let current = parseInt(qteInput.value) || 1;
+            qteInput.value = Math.max(1, current + delta);
+            calculerTotal();
+        }
+
+        function calculerTotal() {
+            let t = 0;
+            document.querySelectorAll('#panier-container > div').forEach(item => {
+                const q = parseInt(item.querySelector('.qte-art').value) || 1;
+                const p = parseInt(item.querySelector('.prix-art').value) || 0;
+                t += (q * p);
+            });
+            document.getElementById('totalVente').innerHTML = `${t.toLocaleString()} <small class="text-sm font-normal text-gray-400 uppercase tracking-normal text-[10px]">FCFA</small>`;
+            calculerMonnaie();
+        }
+
+        function calculerMonnaie() {
+            const totalText = document.getElementById('totalVente').innerText.replace('FCFA', '').replace(/\s/g, '');
+            const t = parseInt(totalText) || 0;
+            const r = parseInt(document.getElementById('argentRecu').value) || 0;
+            const z = document.getElementById('zone-monnaie');
+            if(r > t && t > 0) {
+                z.classList.remove('hidden');
+                document.getElementById('valeurMonnaie').innerText = (r - t).toLocaleString() + ' FCFA';
+            } else { z.classList.add('hidden'); }
+        }
+
+        function validerVente() {
+            const totalText = document.getElementById('totalVente').innerText.replace('FCFA', '').replace(/\s/g, '');
+            const total = parseInt(totalText) || 0;
+            if(total === 0) return alert("Panier vide !");
+
+            if(!active) { count++; localStorage.setItem('c237_count', count); }
+
+            const items = Array.from(document.querySelectorAll('#panier-container > div')).map(div => ({
+                nom: div.querySelector('.nom-art').value || "Divers",
+                q: parseInt(div.querySelector('.qte-art').value) || 1,
+                p: parseInt(div.querySelector('.prix-art').value) || 0
+            }));
+
+            ventes.push({ id: Date.now(), heure: new Date().toLocaleTimeString('fr-FR'), total, items });
+            localStorage.setItem('ventes_v2_237', JSON.stringify(ventes));
+            
+            showToast("Vente Enregistrée ! ?");
+            
+            // Ticket
+            document.getElementById('print-date').innerText = new Date().toLocaleString('fr-FR');
+            document.getElementById('print-total').innerText = total.toLocaleString();
+            let listHtml = "";
+            items.forEach(i => {
+                listHtml += `<tr><td style="padding: 5px 0;">${i.q}x ${i.nom}</td><td style="text-align: right;">${(i.q * i.p).toLocaleString()}</td></tr>`;
+            });
+            document.getElementById('print-items-list').innerHTML = listHtml;
+
+            document.getElementById('panier-container').innerHTML = '';
+            document.getElementById('argentRecu').value = '';
+            ajouterLigne(); calculerTotal(); updateHeaderStats(); checkAccess();
+        }
+
+        function toggleJournal() {
+            document.getElementById('modalJournal').classList.toggle('hidden');
+            renderJournal();
+        }
+
+        function renderJournal() {
+            const l = document.getElementById('listeJournal');
+            if(ventes.length === 0) {
+                l.innerHTML = `<p class="text-center py-10 opacity-30 italic text-sm">Aucune vente</p>`;
+                return;
+            }
+            l.innerHTML = ventes.slice().reverse().map(v => `
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-gray-100 flex justify-between items-center">
+                    <div>
+                        <p class="text-[10px] font-black text-gray-400 uppercase">${v.heure}</p>
+                        <p class="text-[9px] text-gray-400 uppercase font-medium">${v.items.map(i => `${i.q}x ${i.nom}`).join(', ')}</p>
+                    </div>
+                    <p class="font-black text-[#007a5e] text-lg">${v.total.toLocaleString()} CFA</p>
+                </div>
+            `).join('');
+        }
+
+        function updateHeaderStats() {
+            const cumul = ventes.reduce((a, b) => a + b.total, 0);
+            document.getElementById('recette-totale').innerText = cumul.toLocaleString();
+            document.getElementById('count-ventes').innerText = ventes.length;
+        }
+
+        function showToast(m) {
+            const t = document.createElement('div');
+            t.className = "fixed top-20 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-8 py-3 rounded-full text-[10px] font-black uppercase z-[2000] shadow-2xl animate-in fade-in slide-in-from-top-4";
+            t.innerText = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
+        }
+
+        function partagerWhatsApp() {
+            const totalText = document.getElementById('totalVente').innerText.replace('FCFA', '').replace(/\s/g, '');
+            const total = parseInt(totalText) || 0;
+            const msg = `*???? REÇU 237 CAISSE DU MBOA*\n------------------\n*TOTAL : ${total.toLocaleString()} FCFA*\nMerci !`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function exporterRapport() {
+            const total = ventes.reduce((a, b) => a + b.total, 0);
+            const msg = `*?? RAPPORT QUOTIDIEN - 237 CAISSE DU MBOA*\nTotal: ${total.toLocaleString()} FCFA\nVentes: ${ventes.length}`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+        }
+
+        function resetData() { 
+            if(confirm("Effacer le journal ?")) { 
+                ventes = []; 
+                localStorage.removeItem('ventes_v2_237'); 
+                updateHeaderStats(); 
+                toggleJournal(); 
+            } 
+        }
+
+        window.onload = () => {
+            checkAccess(); ajouterLigne(); updateHeaderStats();
+            if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Error'));
+            }
+        };
+        setInterval(() => { document.getElementById('live-clock').innerText = new Date().toLocaleTimeString('fr-FR'); }, 1000);
+    </script>
+</body>
+</html>

@@ -74,7 +74,7 @@
                 </div>
 
                 <div class="pt-4 border-t border-gray-100 space-y-3">
-                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest">Besoin d'une licence ?</p>
+                    <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest text-center">Besoin d'une licence ?</p>
                     <button onclick="payerViaWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-xl text-xs flex items-center justify-center gap-2 btn-primary shadow-lg shadow-green-100 uppercase tracking-widest">
                         Activer via WhatsApp ??
                     </button>
@@ -238,16 +238,20 @@
             }
         }
 
-        // CORRECTION DU LIEN WHATSAPP POUR PLUS DE ROBUSTESSE
+        // CORRECTION DÉFINITIVE DU LIEN WHATSAPP
         function payerViaWhatsApp() {
             const tonNumero = "237698998820"; 
-            const msg = `Salut ! Je souhaite ACTIVER ma licence 237 CAISSE DU MBOA ??.\n\nTerminal-ID: ${Date.now()}`;
+            const terminalId = Date.now();
+            const msg = `Salut ! Je souhaite ACTIVER ma licence 237 CAISSE DU MBOA ??.\n\nTerminal-ID: ${terminalId}`;
             
-            // Utilisation du endpoint api.whatsapp.com (plus stable)
-            const url = `https://api.whatsapp.com/send?phone=${tonNumero}&text=${encodeURIComponent(msg)}`;
+            // Format wa.me (le plus robuste sur mobile)
+            const url = `https://wa.me/${tonNumero}?text=${encodeURIComponent(msg)}`;
             
-            // Redirection directe pour éviter les blocages de fenêtres surgissantes
-            window.location.href = url;
+            // On tente d'ouvrir dans un nouvel onglet, sinon on redirige
+            const win = window.open(url, '_blank');
+            if (!win) {
+                window.location.href = url;
+            }
         }
 
         // LOGIQUE CAISSE
@@ -375,7 +379,7 @@
             const total = parseInt(totalText) || 0;
             const msg = `*???? REÇU 237 CAISSE DU MBOA*\n------------------\n*TOTAL : ${total.toLocaleString()} FCFA*\nMerci !`;
             
-            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
             window.location.href = url;
         }
 
@@ -383,7 +387,7 @@
             const total = ventes.reduce((a, b) => a + b.total, 0);
             const msg = `*?? RAPPORT QUOTIDIEN - 237 CAISSE DU MBOA*\nTotal: ${total.toLocaleString()} FCFA\nVentes: ${ventes.length}`;
             
-            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+            const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
             window.location.href = url;
         }
 

@@ -62,7 +62,7 @@
         <div class="bg-white w-full max-sm:w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl text-center animate-in zoom-in duration-300">
             <div class="h-2 bg-gradient-to-r from-[#007a5e] via-[#ce1126] to-[#fcd116]"></div>
             <div class="p-8 space-y-6">
-                <div class="w-20 h-20 bg-gray-100 rounded-3xl mx-auto flex items-center justify-center text-4xl border border-gray-100 shadow-inner">??</div>
+                <div class="w-20 h-20 bg-gray-50 rounded-3xl mx-auto flex items-center justify-center text-4xl border border-gray-100 shadow-inner">??</div>
                 <div>
                     <h2 id="lock-title" class="font-black text-2xl text-gray-900 leading-tight uppercase tracking-tighter">Terminal Verrouillé</h2>
                     <p class="text-[10px] font-bold text-gray-400 mt-2 uppercase tracking-[0.2em]">237 CAISSE DU MBOA</p>
@@ -75,7 +75,7 @@
 
                 <div class="pt-4 border-t border-gray-100 space-y-3">
                     <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest text-center">Besoin d'une licence ?</p>
-                    <button onclick="payerViaWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-xl text-xs flex items-center justify-center gap-2 btn-primary shadow-lg shadow-green-100 uppercase tracking-widest">
+                    <button id="btn-wa-support" onclick="payerViaWhatsApp()" class="w-full bg-[#25D366] text-white font-black py-4 rounded-xl text-xs flex items-center justify-center gap-2 btn-primary shadow-lg shadow-green-100 uppercase tracking-widest transition-all">
                         Activer via WhatsApp ??
                     </button>
                 </div>
@@ -202,7 +202,7 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
             Ticket PDF
         </button>
-        <button onclick="partagerWhatsApp()" class="bg-[#25D366] text-white p-4 rounded-2xl shadow-xl hover:scale-105 transition btn-primary">
+        <button onclick="partagerWhatsAppDirect()" class="bg-[#25D366] text-white p-4 rounded-2xl shadow-xl hover:scale-105 transition btn-primary">
             <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.246 2.248 3.484 5.232 3.484 8.412-.003 6.557-5.338 11.892-11.893 11.892-1.997-.001-3.951-.5-5.688-1.448l-6.309 1.656zm6.29-4.171c1.589.945 3.554 1.443 5.548 1.444 5.505 0 9.989-4.482 9.992-9.985 0-2.667-1.037-5.176-2.922-7.062-1.886-1.886-4.394-2.923-7.059-2.923-5.51 0-9.991 4.481-9.994 9.986-.001 1.832.493 3.626 1.429 5.192l-1.035 3.784 3.882-1.018z"/></svg>
         </button>
     </footer>
@@ -238,23 +238,35 @@
             }
         }
 
-        // CORRECTION DÉFINITIVE DU LIEN WHATSAPP
+        // --- CORRECTION MAJEURE WHATSAPP ---
         function payerViaWhatsApp() {
+            const btn = document.getElementById('btn-wa-support');
+            btn.innerHTML = "LANCEMENT...";
+            btn.style.backgroundColor = "#128C7E"; // Vert plus foncé au clic
+            
             const tonNumero = "237698998820"; 
             const terminalId = Date.now();
             const msg = `Salut ! Je souhaite ACTIVER ma licence 237 CAISSE DU MBOA ??.\n\nTerminal-ID: ${terminalId}`;
             
-            // Format wa.me (le plus robuste sur mobile)
-            const url = `https://wa.me/${tonNumero}?text=${encodeURIComponent(msg)}`;
+            // Format wa.me simple (le plus compatible)
+            const url = "https://wa.me/" + tonNumero + "?text=" + encodeURIComponent(msg);
             
-            // On tente d'ouvrir dans un nouvel onglet, sinon on redirige
-            const win = window.open(url, '_blank');
-            if (!win) {
-                window.location.href = url;
-            }
+            // On force la redirection immédiate
+            setTimeout(() => {
+                window.location.assign(url);
+                btn.innerHTML = "ACTIVER VIA WHATSAPP ??";
+            }, 500);
         }
 
-        // LOGIQUE CAISSE
+        function partagerWhatsAppDirect() {
+            const totalText = document.getElementById('totalVente').innerText.replace('FCFA', '').replace(/\s/g, '');
+            const total = parseInt(totalText) || 0;
+            const msg = `*???? REÇU 237 CAISSE DU MBOA*\n------------------\n*TOTAL : ${total.toLocaleString()} FCFA*\nMerci !`;
+            const url = "https://wa.me/?text=" + encodeURIComponent(msg);
+            window.location.assign(url);
+        }
+
+        // --- LOGIQUE CAISSE ---
         function ajouterLigne() {
             const id = Date.now();
             const html = `
@@ -326,7 +338,6 @@
             
             showToast("Vente Enregistrée ! ?");
             
-            // Ticket
             document.getElementById('print-date').innerText = new Date().toLocaleString('fr-FR');
             document.getElementById('print-total').innerText = total.toLocaleString();
             let listHtml = "";
@@ -374,21 +385,11 @@
             t.innerText = m; document.body.appendChild(t); setTimeout(() => t.remove(), 2500);
         }
 
-        function partagerWhatsApp() {
-            const totalText = document.getElementById('totalVente').innerText.replace('FCFA', '').replace(/\s/g, '');
-            const total = parseInt(totalText) || 0;
-            const msg = `*???? REÇU 237 CAISSE DU MBOA*\n------------------\n*TOTAL : ${total.toLocaleString()} FCFA*\nMerci !`;
-            
-            const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-            window.location.href = url;
-        }
-
         function exporterRapport() {
             const total = ventes.reduce((a, b) => a + b.total, 0);
             const msg = `*?? RAPPORT QUOTIDIEN - 237 CAISSE DU MBOA*\nTotal: ${total.toLocaleString()} FCFA\nVentes: ${ventes.length}`;
-            
-            const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-            window.location.href = url;
+            const url = "https://wa.me/?text=" + encodeURIComponent(msg);
+            window.location.assign(url);
         }
 
         function resetData() { 
